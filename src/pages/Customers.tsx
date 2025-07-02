@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -48,6 +47,87 @@ const Customers = () => {
       address: 'Kisumu, Kenya',
       totalPurchases: 23400.00,
       lastPurchase: '2024-01-13'
+    },
+    {
+      id: '4',
+      name: 'Sarah Wilson',
+      phone: '+254 744 456 789',
+      email: 'sarah@example.com',
+      address: 'Nakuru, Kenya',
+      totalPurchases: 12750.75,
+      lastPurchase: '2024-01-12'
+    },
+    {
+      id: '5',
+      name: 'David Brown',
+      phone: '+254 755 567 890',
+      email: 'david@example.com',
+      address: 'Eldoret, Kenya',
+      totalPurchases: 18900.00,
+      lastPurchase: '2024-01-11'
+    },
+    {
+      id: '6',
+      name: 'Mary Johnson',
+      phone: '+254 766 678 901',
+      email: 'mary@example.com',
+      address: 'Thika, Kenya',
+      totalPurchases: 9850.25,
+      lastPurchase: '2024-01-10'
+    },
+    {
+      id: '7',
+      name: 'Peter Wilson',
+      phone: '+254 777 789 012',
+      email: 'peter@example.com',
+      address: 'Machakos, Kenya',
+      totalPurchases: 14200.50,
+      lastPurchase: '2024-01-09'
+    },
+    {
+      id: '8',
+      name: 'Lucy Adams',
+      phone: '+254 788 890 123',
+      email: 'lucy@example.com',
+      address: 'Nyeri, Kenya',
+      totalPurchases: 21500.75,
+      lastPurchase: '2024-01-08'
+    },
+    {
+      id: '9',
+      name: 'James Kiptoo',
+      phone: '+254 799 901 234',
+      email: 'james@example.com',
+      address: 'Kericho, Kenya',
+      totalPurchases: 16750.00,
+      lastPurchase: '2024-01-07'
+    },
+    {
+      id: '10',
+      name: 'Grace Wanjiku',
+      phone: '+254 700 012 345',
+      email: 'grace@example.com',
+      address: 'Kiambu, Kenya',
+      totalPurchases: 13450.25,
+      lastPurchase: '2024-01-06'
+    },
+    {
+      id: '11',
+      name: 'Robert Otieno',
+      phone: '+254 701 123 456',
+      email: 'robert@example.com',
+      address: 'Kisii, Kenya',
+      totalPurchases: 19800.50,
+      lastPurchase: '2024-01-05'
+    },
+    {
+      id: '12',
+      name: 'Elizabeth Muthoni',
+      phone: '+254 702 234 567',
+      email: 'elizabeth@example.com',
+      address: 'Meru, Kenya',
+      totalPurchases: 11250.75,
+      lastPurchase: '2024-01-04'
     }
   ]);
 

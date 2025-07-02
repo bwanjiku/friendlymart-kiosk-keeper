@@ -29,9 +29,9 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-bg-primary">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       <div className="flex">
         {/* Sidebar */}
-        <nav className="w-64 bg-white shadow-sm min-h-screen">
+        <nav className="w-64 bg-white/90 backdrop-blur-sm shadow-lg min-h-screen border-r border-white/20">
           <div className="p-4">
             <ul className="space-y-2">
               {navItems.map((item) => {
@@ -61,10 +61,10 @@ const Layout = ({ children }: LayoutProps) => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-green-100 text-green-700 shadow-md'
+                          : 'text-gray-600 hover:bg-white/70 hover:text-gray-900 hover:shadow-sm'
                       }`}
                     >
                       <Icon className="h-5 w-5 mr-3" />
@@ -79,7 +79,9 @@ const Layout = ({ children }: LayoutProps) => {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          {children}
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-white/20 p-6 min-h-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
