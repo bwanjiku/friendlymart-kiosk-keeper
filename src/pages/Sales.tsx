@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Receipt } from 'lucide-react';
+import { Plus, Receipt, Printer } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface SaleItem {
@@ -118,26 +117,186 @@ const Sales = () => {
     });
   };
 
+  const printReceipt = (sale: Sale) => {
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - ${sale.id}</title>
+        <style>
+          body {
+            font-family: 'Courier New', monospace;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+          }
+          .store-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .store-info {
+            font-size: 12px;
+            margin-bottom: 2px;
+          }
+          .receipt-info {
+            margin: 15px 0;
+            font-size: 12px;
+          }
+          .items {
+            margin: 15px 0;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 10px 0;
+          }
+          .item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+          }
+          .item-details {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+          }
+          .totals {
+            margin-top: 15px;
+            font-size: 12px;
+          }
+          .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+          }
+          .grand-total {
+            font-weight: bold;
+            font-size: 14px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 5px;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+          }
+          @media print {
+            body { margin: 0; padding: 10px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="store-name">FRIENDLYMART SUPERMARKET</div>
+          <div class="store-info">Your Friendly Neighborhood Store</div>
+          <div class="store-info">Tel: +254 700 123 456</div>
+          <div class="store-info">Email: info@friendlymart.co.ke</div>
+        </div>
+        
+        <div class="receipt-info">
+          <div>Receipt #: ${sale.id}</div>
+          <div>Date: ${sale.date} ${sale.time}</div>
+          <div>Customer: ${sale.customerName}</div>
+          <div>Cashier: Admin</div>
+        </div>
+        
+        <div class="items">
+          ${sale.items.map(item => `
+            <div class="item">
+              <div class="item-details">
+                <div>${item.productName}</div>
+                <div>KSh ${item.total.toLocaleString()}</div>
+              </div>
+            </div>
+            <div class="item" style="font-size: 10px; color: #666; margin-bottom: 8px;">
+              <div>${item.quantity} x KSh ${item.price.toLocaleString()}</div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="totals">
+          <div class="total-line">
+            <span>Subtotal:</span>
+            <span>KSh ${sale.subtotal.toLocaleString()}</span>
+          </div>
+          <div class="total-line">
+            <span>Tax (10%):</span>
+            <span>KSh ${sale.tax.toLocaleString()}</span>
+          </div>
+          <div class="total-line grand-total">
+            <span>TOTAL:</span>
+            <span>KSh ${sale.total.toLocaleString()}</span>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <div>Thank you for shopping with us!</div>
+          <div>Have a great day!</div>
+          <div style="margin-top: 10px;">*** CUSTOMER COPY ***</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(receiptHtml);
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Auto print after a short delay
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      
+      toast({
+        title: "Receipt Ready",
+        description: "Receipt is ready for printing",
+      });
+    }
+  };
+
   const generateReceipt = (sale: Sale) => {
     const receiptContent = `
-SUPERMARKET RECEIPT
-==================
+==========================================
+         FRIENDLYMART SUPERMARKET
+         Your Friendly Neighborhood Store
+         Tel: +254 700 123 456
+         Email: info@friendlymart.co.ke
+==========================================
+
+Receipt #: ${sale.id}
 Date: ${sale.date} ${sale.time}
 Customer: ${sale.customerName}
-Sale ID: ${sale.id}
+Cashier: Admin
 
-ITEMS:
+------------------------------------------
+ITEMS PURCHASED:
+------------------------------------------
 ${sale.items.map(item => 
-  `${item.productName} x${item.quantity} @ KSh ${item.price} = KSh ${item.total}`
+  `${item.productName}\n${item.quantity} x KSh ${item.price.toLocaleString()} = KSh ${item.total.toLocaleString()}\n`
 ).join('\n')}
-
-==================
-Subtotal: KSh ${sale.subtotal.toLocaleString()}
-Tax (10%): KSh ${sale.tax.toLocaleString()}
-TOTAL: KSh ${sale.total.toLocaleString()}
-==================
+------------------------------------------
+Subtotal:        KSh ${sale.subtotal.toLocaleString()}
+Tax (10%):       KSh ${sale.tax.toLocaleString()}
+==========================================
+TOTAL:           KSh ${sale.total.toLocaleString()}
+==========================================
 
 Thank you for shopping with us!
+Have a great day!
+
+*** CUSTOMER COPY ***
     `;
 
     // Create a blob and download
@@ -150,8 +309,8 @@ Thank you for shopping with us!
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Receipt Generated",
-      description: "Receipt has been downloaded",
+      title: "Receipt Downloaded",
+      description: "Receipt has been downloaded as text file",
     });
   };
 
@@ -302,14 +461,24 @@ Thank you for shopping with us!
                     <TableCell>{sale.items.length} items</TableCell>
                     <TableCell>KSh {sale.total.toLocaleString()}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => generateReceipt(sale)}
-                      >
-                        <Receipt className="h-4 w-4 mr-2" />
-                        Receipt
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => printReceipt(sale)}
+                        >
+                          <Printer className="h-4 w-4 mr-2" />
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generateReceipt(sale)}
+                        >
+                          <Receipt className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
