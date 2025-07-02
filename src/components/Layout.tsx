@@ -36,7 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <ShoppingCart className="h-8 w-8 text-green-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">SuperMarket Manager</h1>
+              <h1 className="text-xl font-bold text-gray-900">FriendlyMartSupermarket</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user?.username}</span>

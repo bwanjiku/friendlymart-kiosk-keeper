@@ -39,8 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simple authentication - in real app, this would be an API call
-    if (username === 'admin' && password === 'password') {
-      const user = { id: '1', username: 'admin', email: 'admin@supermarket.com' };
+    if (username === 'admin' && password === 'admin') {
+      const user = { id: '1', username: 'admin', email: 'admin@friendlymartsupermarket.com' };
       setUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(user));

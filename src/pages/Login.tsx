@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ const Login = () => {
     } else {
       toast({
         title: "Login failed",
-        description: "Invalid username or password. Try admin/password",
+        description: "Invalid username or password.",
         variant: "destructive",
       });
     }
@@ -47,7 +47,7 @@ const Login = () => {
             <ShoppingCart className="h-12 w-12 text-green-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            SuperMarket Manager
+            FriendlyMartSupermarket
           </CardTitle>
           <CardDescription>
             Login to access your inventory management system
@@ -80,8 +80,33 @@ const Login = () => {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
-            <div className="text-center text-sm text-gray-600 mt-4">
-              Demo credentials: admin / password
+            
+            <div className="space-y-2 text-center">
+              <div className="text-sm">
+                <button
+                  type="button"
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                  onClick={() => toast({
+                    title: "Feature Coming Soon",
+                    description: "Forgot password functionality will be available soon.",
+                  })}
+                >
+                  Forgot your password?
+                </button>
+              </div>
+              <div className="text-sm text-gray-600">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                  onClick={() => toast({
+                    title: "Feature Coming Soon",
+                    description: "User registration functionality will be available soon.",
+                  })}
+                >
+                  Register here
+                </button>
+              </div>
             </div>
           </form>
         </CardContent>
