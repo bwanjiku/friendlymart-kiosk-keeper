@@ -1,73 +1,114 @@
-# Welcome to your Lovable project
 
-## Project info
+# FriendlyMart Supermarket Management System
 
-**URL**: https://lovable.dev/projects/448813a3-9595-4692-af96-106d6e2fbf37
+A comprehensive web-based supermarket management system built with React, TypeScript, and modern web technologies.
 
-## How can I edit this code?
+## 🚀 Quick Start
 
-There are several ways of editing your application.
+```bash
+# Install dependencies
+npm install
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/448813a3-9595-4692-af96-106d6e2fbf37) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 🔑 Default Login Credentials
+- **Username**: `admin`
+- **Password**: `admin`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## ✨ Features
 
-**Use GitHub Codespaces**
+- 🔐 **Authentication** - Secure login with password reset
+- 📊 **Dashboard** - Real-time analytics and KPIs
+- 📦 **Inventory Management** - Product tracking with low stock alerts
+- 👥 **Supplier Management** - Supplier database and relationships
+- 👤 **Customer Management** - Customer tracking and analytics
+- 💰 **Sales Management** - Point of sale and transaction recording
+- 📈 **Reports** - Date-filtered reports with KSH currency
+- 📱 **Responsive Design** - Works on desktop and mobile
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🛠️ Tech Stack
 
-## What technologies are used for this project?
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **UI**: Shadcn/ui components
+- **State**: React Context API, TanStack React Query
+- **Routing**: React Router DOM
+- **Storage**: localStorage (expandable to Supabase)
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
-This project is built with:
+## 📁 Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+├── components/     # Reusable UI components
+├── contexts/       # React contexts (Auth)
+├── pages/          # Main application pages
+├── utils/          # Database and utility functions
+├── hooks/          # Custom React hooks
+└── lib/            # Library configurations
+```
 
-## How can I deploy this project?
+## 🗄️ Data Management
 
-Simply open [Lovable](https://lovable.dev/projects/448813a3-9595-4692-af96-106d6e2fbf37) and click on Share -> Publish.
+The system uses localStorage for data persistence with the following collections:
+- Users
+- Products
+- Suppliers
+- Customers
+- Sales
 
-## Can I connect a custom domain to my Lovable project?
+## 📖 Documentation
 
-Yes, you can!
+For detailed documentation, see [SYSTEM_DOCUMENTATION.md](SYSTEM_DOCUMENTATION.md)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔧 Development
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Code Style
+- TypeScript for type safety
+- Tailwind CSS for styling
+- ESLint for code quality
+- Component-based architecture
+
+## 🚢 Deployment
+
+The application can be deployed to any static hosting service:
+- Vercel
+- Netlify
+- GitHub Pages
+- Lovable (native deployment)
+
+## 🔮 Future Enhancements
+
+- Supabase backend integration
+- Real email service
+- Barcode scanning
+- Multi-location support
+- Advanced analytics
+- Mobile app
+
+## 📄 License
+
+This project is for educational and commercial use.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+---
+
+Built with ❤️ using React and TypeScript
