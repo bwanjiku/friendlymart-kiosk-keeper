@@ -1,465 +1,441 @@
 
 import { useState } from 'react';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Calendar, TrendingUp, Users, ShoppingCart, Package } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { Download, TrendingUp, Users, ShoppingCart, DollarSign } from 'lucide-react';
+import Layout from '@/components/Layout';
+
+// Define proper types for different data structures
+interface SalesData {
+  date: string;
+  product: string;
+  quantity: number;
+  revenue: number;
+  customer: string;
+  category: string;
+}
+
+interface PurchaseData {
+  date: string;
+  product: string;
+  quantity: number;
+  cost: number;
+  supplier: string;
+  category: string;
+}
+
+interface CustomerData {
+  date: string;
+  name: string;
+  purchases: number;
+  totalSpent: number;
+  lastVisit: string;
+  phone: string;
+}
 
 const Reports = () => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState('sales');
 
-  // Expanded mock data for different report types
-  const mockSalesData = [
-    { date: '2024-01-01', product: 'Milk 1L', quantity: 50, revenue: 6000, customer: 'John Doe', category: 'Dairy' },
-    { date: '2024-01-02', product: 'Bread Loaf', quantity: 30, revenue: 2400, customer: 'Jane Smith', category: 'Bakery' },
-    { date: '2024-01-03', product: 'Rice 2kg', quantity: 20, revenue: 5000, customer: 'Mike Johnson', category: 'Grains' },
-    { date: '2024-01-04', product: 'Cooking Oil 1L', quantity: 15, revenue: 2700, customer: 'Sarah Wilson', category: 'Cooking' },
-    { date: '2024-01-05', product: 'Sugar 1kg', quantity: 25, revenue: 3750, customer: 'David Brown', category: 'Pantry' },
-    { date: '2024-01-06', product: 'Eggs (12pcs)', quantity: 40, revenue: 4800, customer: 'Mary Johnson', category: 'Dairy' },
-    { date: '2024-01-07', product: 'Chicken 1kg', quantity: 12, revenue: 7200, customer: 'Peter Wilson', category: 'Meat' },
-    { date: '2024-01-08', product: 'Tomatoes 1kg', quantity: 35, revenue: 3500, customer: 'Lucy Adams', category: 'Vegetables' },
+  // Sample data for different report types
+  const salesData: SalesData[] = [
+    { date: '2024-01-01', product: 'Milk', quantity: 15, revenue: 52.50, customer: 'John Doe', category: 'Dairy' },
+    { date: '2024-01-02', product: 'Bread', quantity: 25, revenue: 74.75, customer: 'Jane Smith', category: 'Bakery' },
+    { date: '2024-01-03', product: 'Eggs', quantity: 20, revenue: 99.80, customer: 'Bob Johnson', category: 'Dairy' },
+    { date: '2024-01-04', product: 'Apples', quantity: 30, revenue: 59.70, customer: 'Alice Brown', category: 'Fruits' },
+    { date: '2024-01-05', product: 'Rice', quantity: 10, revenue: 59.90, customer: 'Charlie Wilson', category: 'Grains' },
   ];
 
-  const mockPurchasesData = [
-    { date: '2024-01-01', product: 'Milk 1L', quantity: 100, cost: 10000, supplier: 'Dairy Fresh Ltd', category: 'Dairy' },
-    { date: '2024-01-02', product: 'Bread Loaf', quantity: 60, cost: 3600, supplier: 'Golden Bakery', category: 'Bakery' },
-    { date: '2024-01-03', product: 'Rice 2kg', quantity: 50, cost: 10000, supplier: 'Grain Masters', category: 'Grains' },
-    { date: '2024-01-04', product: 'Cooking Oil 1L', quantity: 30, cost: 4500, supplier: 'Oil Pro Kenya', category: 'Cooking' },
-    { date: '2024-01-05', product: 'Sugar 1kg', quantity: 80, cost: 9600, supplier: 'Sweet Supplies', category: 'Pantry' },
-    { date: '2024-01-06', product: 'Eggs (12pcs)', quantity: 100, cost: 10000, supplier: 'Poultry Farm Co', category: 'Dairy' },
-    { date: '2024-01-07', product: 'Chicken 1kg', quantity: 25, cost: 12500, supplier: 'Fresh Meat Ltd', category: 'Meat' },
+  const purchaseData: PurchaseData[] = [
+    { date: '2024-01-01', product: 'Milk', quantity: 50, cost: 125.00, supplier: 'Fresh Farms', category: 'Dairy' },
+    { date: '2024-01-02', product: 'Bread', quantity: 40, cost: 80.00, supplier: 'Local Bakery', category: 'Bakery' },
+    { date: '2024-01-03', product: 'Eggs', quantity: 60, cost: 180.00, supplier: 'Farm Fresh', category: 'Dairy' },
+    { date: '2024-01-04', product: 'Apples', quantity: 80, cost: 120.00, supplier: 'Orchard Co', category: 'Fruits' },
+    { date: '2024-01-05', product: 'Rice', quantity: 30, cost: 150.00, supplier: 'Rice Mills', category: 'Grains' },
   ];
 
-  const mockCustomersData = [
-    { date: '2024-01-01', name: 'John Doe', purchases: 5, totalSpent: 12500, lastVisit: '2024-01-15', phone: '+254 711 123 456' },
-    { date: '2024-01-02', name: 'Jane Smith', purchases: 8, totalSpent: 18900, lastVisit: '2024-01-14', phone: '+254 722 234 567' },
-    { date: '2024-01-03', name: 'Mike Johnson', purchases: 12, totalSpent: 23400, lastVisit: '2024-01-13', phone: '+254 733 345 678' },
-    { date: '2024-01-04', name: 'Sarah Wilson', purchases: 6, totalSpent: 15600, lastVisit: '2024-01-12', phone: '+254 744 456 789' },
-    { date: '2024-01-05', name: 'David Brown', purchases: 9, totalSpent: 21200, lastVisit: '2024-01-11', phone: '+254 755 567 890' },
-    { date: '2024-01-06', name: 'Mary Johnson', purchases: 7, totalSpent: 16800, lastVisit: '2024-01-10', phone: '+254 766 678 901' },
-    { date: '2024-01-07', name: 'Peter Wilson', purchases: 4, totalSpent: 9800, lastVisit: '2024-01-09', phone: '+254 777 789 012' },
-    { date: '2024-01-08', name: 'Lucy Adams', purchases: 11, totalSpent: 25600, lastVisit: '2024-01-08', phone: '+254 788 890 123' },
+  const customerData: CustomerData[] = [
+    { date: '2024-01-15', name: 'John Doe', purchases: 15, totalSpent: 299.99, lastVisit: '2024-01-15', phone: '123-456-7890' },
+    { date: '2024-01-10', name: 'Jane Smith', purchases: 8, totalSpent: 150.50, lastVisit: '2024-01-10', phone: '987-654-3210' },
+    { date: '2024-01-20', name: 'Bob Johnson', purchases: 22, totalSpent: 450.75, lastVisit: '2024-01-20', phone: '555-123-4567' },
+    { date: '2024-01-18', name: 'Alice Brown', purchases: 12, totalSpent: 275.25, lastVisit: '2024-01-18', phone: '111-222-3333' },
+    { date: '2024-01-22', name: 'Charlie Wilson', purchases: 18, totalSpent: 380.90, lastVisit: '2024-01-22', phone: '444-555-6666' },
   ];
 
-  const generateReport = () => {
-    if (!startDate || !endDate) {
-      toast({
-        title: "Error",
-        description: "Please select both start and end dates",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (new Date(startDate) > new Date(endDate)) {
-      toast({
-        title: "Error",
-        description: "Start date cannot be after end date",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setShowResults(true);
-    toast({
-      title: "Reports Generated",
-      description: `Generated reports for the selected period`,
-    });
+  // Calculate metrics for each data type
+  const salesMetrics = {
+    totalRevenue: salesData.reduce((sum, item) => sum + item.revenue, 0),
+    totalQuantity: salesData.reduce((sum, item) => sum + item.quantity, 0),
+    avgOrderValue: salesData.reduce((sum, item) => sum + item.revenue, 0) / salesData.length,
+    topProduct: salesData.reduce((max, item) => item.revenue > max.revenue ? item : max, salesData[0])?.product || 'N/A'
   };
 
-  const downloadReport = (reportType: string, data: any[]) => {
-    if (data.length === 0) {
-      toast({
-        title: "Error",
-        description: "No data to download. Please generate a report first.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const purchaseMetrics = {
+    totalCost: purchaseData.reduce((sum, item) => sum + item.cost, 0),
+    totalQuantity: purchaseData.reduce((sum, item) => sum + item.quantity, 0),
+    avgCostPerItem: purchaseData.reduce((sum, item) => sum + item.cost, 0) / purchaseData.reduce((sum, item) => sum + item.quantity, 0),
+    topSupplier: purchaseData.reduce((acc, item) => {
+      acc[item.supplier] = (acc[item.supplier] || 0) + item.cost;
+      return acc;
+    }, {} as Record<string, number>)
+  };
 
-    let csvContent = '';
-    let filename = '';
+  const customerMetrics = {
+    totalCustomers: customerData.length,
+    totalSpent: customerData.reduce((sum, item) => sum + item.totalSpent, 0),
+    avgSpentPerCustomer: customerData.reduce((sum, item) => sum + item.totalSpent, 0) / customerData.length,
+    topCustomer: customerData.reduce((max, item) => item.totalSpent > max.totalSpent ? item : max, customerData[0])?.name || 'N/A'
+  };
 
-    switch (reportType) {
+  const downloadCSV = (data: any[], filename: string, type: 'sales' | 'purchases' | 'customers') => {
+    let headers: string[];
+    let csvContent: string;
+
+    switch (type) {
       case 'sales':
-        csvContent = [
-          ['Date', 'Product', 'Category', 'Quantity', 'Revenue (KSh)', 'Customer'],
-          ...data.map(item => [item.date, item.product, item.category, item.quantity, item.revenue, item.customer])
-        ].map(row => row.join(',')).join('\n');
-        filename = `sales-report-${startDate}-to-${endDate}.csv`;
+        headers = ['Date', 'Product', 'Category', 'Quantity', 'Revenue', 'Customer'];
+        csvContent = headers.join(',') + '\n' + 
+          (data as SalesData[]).map(row => 
+            `${row.date},${row.product},${row.category},${row.quantity},$${row.revenue.toFixed(2)},${row.customer}`
+          ).join('\n');
         break;
       case 'purchases':
-        csvContent = [
-          ['Date', 'Product', 'Category', 'Quantity', 'Cost (KSh)', 'Supplier'],
-          ...data.map(item => [item.date, item.product, item.category, item.quantity, item.cost, item.supplier])
-        ].map(row => row.join(',')).join('\n');
-        filename = `purchases-report-${startDate}-to-${endDate}.csv`;
+        headers = ['Date', 'Product', 'Category', 'Quantity', 'Cost', 'Supplier'];
+        csvContent = headers.join(',') + '\n' + 
+          (data as PurchaseData[]).map(row => 
+            `${row.date},${row.product},${row.category},${row.quantity},$${row.cost.toFixed(2)},${row.supplier}`
+          ).join('\n');
         break;
       case 'customers':
-        csvContent = [
-          ['Registration Date', 'Customer Name', 'Phone', 'Total Purchases', 'Total Spent (KSh)', 'Last Visit'],
-          ...data.map(item => [item.date, item.name, item.phone, item.purchases, item.totalSpent, item.lastVisit])
-        ].map(row => row.join(',')).join('\n');
-        filename = `customers-report-${startDate}-to-${endDate}.csv`;
+        headers = ['Name', 'Phone', 'Purchases', 'Total Spent', 'Last Visit'];
+        csvContent = headers.join(',') + '\n' + 
+          (data as CustomerData[]).map(row => 
+            `${row.name},${row.phone},${row.purchases},$${row.totalSpent.toFixed(2)},${row.lastVisit}`
+          ).join('\n');
         break;
+      default:
+        return;
     }
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Report Downloaded",
-      description: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report has been downloaded`,
-    });
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const getFilteredData = (dataType: string) => {
-    const data = dataType === 'sales' ? mockSalesData : 
-                 dataType === 'purchases' ? mockPurchasesData : mockCustomersData;
-    
-    return data.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= new Date(startDate) && itemDate <= new Date(endDate);
-    });
-  };
-
-  const getSummaryStats = (reportType: string) => {
-    const data = getFilteredData(reportType);
-    
-    switch (reportType) {
-      case 'sales':
-        return {
-          total: data.reduce((sum, item) => sum + item.revenue, 0),
-          count: data.length,
-          items: data.reduce((sum, item) => sum + item.quantity, 0)
-        };
-      case 'purchases':
-        return {
-          total: data.reduce((sum, item) => sum + item.cost, 0),
-          count: data.length,
-          items: data.reduce((sum, item) => sum + item.quantity, 0)
-        };
-      case 'customers':
-        return {
-          total: data.reduce((sum, item) => sum + item.totalSpent, 0),
-          count: data.length,
-          items: data.reduce((sum, item) => sum + item.purchases, 0)
-        };
-    }
-  };
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Business Reports</h1>
-          <p className="text-gray-600">Generate comprehensive reports for sales, purchases, and customers</p>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
         </div>
 
-        {/* Report Generator */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Reports</CardTitle>
-            <CardDescription>
-              Select a date range to generate detailed business reports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div>
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="endDate">End Date</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-              <Button onClick={generateReport} className="w-full">
-                <Calendar className="h-4 w-4 mr-2" />
-                Generate Reports
-              </Button>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="sales">Sales Reports</TabsTrigger>
+            <TabsTrigger value="purchases">Purchase Reports</TabsTrigger>
+            <TabsTrigger value="customers">Customer Reports</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="sales" className="space-y-4">
+            {/* Sales Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${salesMetrics.totalRevenue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+12% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Items Sold</CardTitle>
+                  <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{salesMetrics.totalQuantity}</div>
+                  <p className="text-xs text-muted-foreground">+8% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${salesMetrics.avgOrderValue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+5% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Product</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{salesMetrics.topProduct}</div>
+                  <p className="text-xs text-muted-foreground">Best seller this month</p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {showResults && (
-          <Tabs defaultValue="sales" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="sales" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Sales Reports
-              </TabsTrigger>
-              <TabsTrigger value="purchases" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Purchases Reports
-              </TabsTrigger>
-              <TabsTrigger value="customers" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Customers Reports
-              </TabsTrigger>
-            </TabsList>
+            {/* Sales Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Daily Sales Revenue</CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => downloadCSV(salesData, 'sales-report.csv', 'sales')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={salesData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-            {/* Sales Reports */}
-            <TabsContent value="sales" className="space-y-6">
-              {(() => {
-                const stats = getSummaryStats('sales');
-                const data = getFilteredData('sales');
-                return (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">KSh {stats.total.toLocaleString()}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Items Sold</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.items}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.count}</div>
-                        </CardContent>
-                      </Card>
-                    </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales by Category</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={salesData.reduce((acc, item) => {
+                          const existing = acc.find(x => x.category === item.category);
+                          if (existing) {
+                            existing.value += item.revenue;
+                          } else {
+                            acc.push({ category: item.category, value: item.revenue });
+                          }
+                          return acc;
+                        }, [] as { category: string; value: number }[])}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {salesData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-                    <Card>
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <CardTitle>Sales Report</CardTitle>
-                            <CardDescription>Detailed sales data for {startDate} to {endDate}</CardDescription>
-                          </div>
-                          <Button onClick={() => downloadReport('sales', data)} variant="outline">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download CSV
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Product</TableHead>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Quantity</TableHead>
-                              <TableHead>Revenue (KSh)</TableHead>
-                              <TableHead>Customer</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {data.map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{item.date}</TableCell>
-                                <TableCell className="font-medium">{item.product}</TableCell>
-                                <TableCell>{item.category}</TableCell>
-                                <TableCell>{item.quantity}</TableCell>
-                                <TableCell>KSh {item.revenue.toLocaleString()}</TableCell>
-                                <TableCell>{item.customer}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                    </Card>
-                  </>
-                );
-              })()}
-            </TabsContent>
+          <TabsContent value="purchases" className="space-y-4">
+            {/* Purchase Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Purchase Cost</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${purchaseMetrics.totalCost.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+10% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Items Purchased</CardTitle>
+                  <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{purchaseMetrics.totalQuantity}</div>
+                  <p className="text-xs text-muted-foreground">+15% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Cost Per Item</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${purchaseMetrics.avgCostPerItem.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">-2% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Suppliers</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{Object.keys(purchaseMetrics.topSupplier).length}</div>
+                  <p className="text-xs text-muted-foreground">5 suppliers this month</p>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Purchases Reports */}
-            <TabsContent value="purchases" className="space-y-6">
-              {(() => {
-                const stats = getSummaryStats('purchases');
-                const data = getFilteredData('purchases');
-                return (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">KSh {stats.total.toLocaleString()}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Items Purchased</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.items}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Purchase Orders</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.count}</div>
-                        </CardContent>
-                      </Card>
-                    </div>
+            {/* Purchase Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Purchase Costs Over Time</CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => downloadCSV(purchaseData, 'purchase-report.csv', 'purchases')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={purchaseData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="cost" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <CardTitle>Purchases Report</CardTitle>
-                            <CardDescription>Detailed purchases data for {startDate} to {endDate}</CardDescription>
-                          </div>
-                          <Button onClick={() => downloadReport('purchases', data)} variant="outline">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download CSV
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Product</TableHead>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Quantity</TableHead>
-                              <TableHead>Cost (KSh)</TableHead>
-                              <TableHead>Supplier</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {data.map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{item.date}</TableCell>
-                                <TableCell className="font-medium">{item.product}</TableCell>
-                                <TableCell>{item.category}</TableCell>
-                                <TableCell>{item.quantity}</TableCell>
-                                <TableCell>KSh {item.cost.toLocaleString()}</TableCell>
-                                <TableCell>{item.supplier}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                    </Card>
-                  </>
-                );
-              })()}
-            </TabsContent>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Purchase Quantity by Product</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={purchaseData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="product" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="quantity" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-            {/* Customers Reports */}
-            <TabsContent value="customers" className="space-y-6">
-              {(() => {
-                const stats = getSummaryStats('customers');
-                const data = getFilteredData('customers');
-                return (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Total Customer Spending</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">KSh {stats.total.toLocaleString()}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.items}</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stats.count}</div>
-                        </CardContent>
-                      </Card>
-                    </div>
+          <TabsContent value="customers" className="space-y-4">
+            {/* Customer Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{customerMetrics.totalCustomers}</div>
+                  <p className="text-xs text-muted-foreground">+20% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Customer Spending</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${customerMetrics.totalSpent.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+18% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Spend Per Customer</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${customerMetrics.avgSpentPerCustomer.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+7% from last month</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Customer</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{customerMetrics.topCustomer}</div>
+                  <p className="text-xs text-muted-foreground">Highest spender</p>
+                </CardContent>
+              </Card>
+            </div>
 
-                    <Card>
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <CardTitle>Customers Report</CardTitle>
-                            <CardDescription>Customer activity data for {startDate} to {endDate}</CardDescription>
-                          </div>
-                          <Button onClick={() => downloadReport('customers', data)} variant="outline">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download CSV
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Registration Date</TableHead>
-                              <TableHead>Customer Name</TableHead>
-                              <TableHead>Phone</TableHead>
-                              <TableHead>Total Purchases</TableHead>
-                              <TableHead>Total Spent (KSh)</TableHead>
-                              <TableHead>Last Visit</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {data.map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{item.date}</TableCell>
-                                <TableCell className="font-medium">{item.name}</TableCell>
-                                <TableCell>{item.phone}</TableCell>
-                                <TableCell>{item.purchases}</TableCell>
-                                <TableCell>KSh {item.totalSpent.toLocaleString()}</TableCell>
-                                <TableCell>{item.lastVisit}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                    </Card>
-                  </>
-                );
-              })()}
-            </TabsContent>
-          </Tabs>
-        )}
+            {/* Customer Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Customer Spending Analysis</CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => downloadCSV(customerData, 'customer-report.csv', 'customers')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={customerData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="totalSpent" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer Purchase Frequency</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={customerData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="purchases" stroke="#82ca9d" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

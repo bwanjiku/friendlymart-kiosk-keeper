@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { db } from '@/utils/database';
 
 interface User {
   id: string;
@@ -30,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check if user is logged in from localStorage
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
@@ -38,12 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Simple authentication - in real app, this would be an API call
-    if (username === 'admin' && password === 'admin') {
-      const user = { id: '1', username: 'admin', email: 'admin@friendlymartsupermarket.com' };
+    // Use the database to authenticate
+    const dbUser = db.getUserByUsername(username);
+    
+    if (dbUser && dbUser.password === password) {
+      const user = { 
+        id: dbUser.id, 
+        username: dbUser.username, 
+        email: dbUser.email 
+      };
       setUser(user);
       setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('currentUser', JSON.stringify(user));
       return true;
     }
     return false;
@@ -52,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,7 +46,7 @@ const Login = () => {
             <ShoppingCart className="h-12 w-12 text-green-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            FriendlyMartSupermarket
+            FriendlyMart Supermarket
           </CardTitle>
           <CardDescription>
             Login to access your inventory management system
@@ -83,16 +82,12 @@ const Login = () => {
             
             <div className="space-y-2 text-center">
               <div className="text-sm">
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-blue-600 hover:text-blue-800 hover:underline"
-                  onClick={() => toast({
-                    title: "Feature Coming Soon",
-                    description: "Forgot password functionality will be available soon.",
-                  })}
                 >
                   Forgot your password?
-                </button>
+                </Link>
               </div>
               <div className="text-sm text-gray-600">
                 Don't have an account?{' '}
