@@ -6,7 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, ArrowDown } from 'lucide-react';
+import { CalendarIcon, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { toast } from '@/hooks/use-toast';
@@ -19,10 +19,8 @@ interface Sale {
 }
 
 const Reports = () => {
-  const [dateRange, setDateRange] = useState<{ from: Date | null, to?: Date | null }>({
-    from: null,
-    to: null,
-  });
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [salesData, setSalesData] = useState<Sale[]>([
     { id: '1', date: '2025-05-01', customer: 'John Doe', amount: 120 },
     { id: '2', date: '2025-05-05', customer: 'Jane Smith', amount: 80 },
@@ -43,21 +41,36 @@ const Reports = () => {
   const [filteredData, setFilteredData] = useState<Sale[]>([]);
 
   const handleGenerateReport = () => {
-    if (!dateRange?.from) {
+    if (!fromDate) {
       toast({
         title: "Error",
-        description: "Please select a start date",
+        description: "Please select a 'From' date",
         variant: "destructive",
       });
       return;
     }
 
-    // Handle optional 'to' date
-    const endDate = dateRange.to || dateRange.from;
+    if (!toDate) {
+      toast({
+        title: "Error",
+        description: "Please select a 'To' date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (fromDate > toDate) {
+      toast({
+        title: "Error",
+        description: "'From' date cannot be later than 'To' date",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const filtered = salesData.filter(sale => {
       const saleDate = new Date(sale.date);
-      return saleDate >= dateRange.from! && saleDate <= endDate;
+      return saleDate >= fromDate && saleDate <= toDate;
     });
 
     setFilteredData(filtered);
@@ -68,84 +81,134 @@ const Reports = () => {
     });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const totalAmount = filteredData.reduce((sum, sale) => sum + sale.amount, 0);
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
+        <div className="print:hidden">
           <h1 className="text-3xl font-bold text-gray-900">Sales Reports</h1>
           <p className="text-gray-600">Generate sales reports and analyze trends</p>
         </div>
 
         {/* Date Range Picker */}
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Select Date Range</CardTitle>
             <CardDescription>Choose the start and end dates for the report</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[240px] justify-start text-left font-normal",
-                      !dateRange.from && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        `${format(dateRange.from, "MMM dd, yyyy")} - ${format(dateRange.to, "MMM dd, yyyy")}`
-                      ) : (
-                        format(dateRange.from, "MMM dd, yyyy")
-                      )
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                    disabled={(date) => date < new Date('2025-05-01') || date > new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
-              <Button onClick={handleGenerateReport}>
-                Generate Report <ArrowDown className="h-4 w-4 ml-2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* From Date */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">From Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !fromDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {fromDate ? format(fromDate, "MMM dd, yyyy") : <span>Pick start date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={fromDate}
+                      onSelect={setFromDate}
+                      disabled={(date) => date < new Date('2025-05-01') || date > new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* To Date */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">To Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !toDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {toDate ? format(toDate, "MMM dd, yyyy") : <span>Pick end date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={toDate}
+                      onSelect={setToDate}
+                      disabled={(date) => date < new Date('2025-05-01') || date > new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleGenerateReport} className="flex-1">
+                Generate Report
               </Button>
+              {filteredData.length > 0 && (
+                <Button onClick={handlePrint} variant="outline">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print Report
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
+        {/* Print Header - Only visible when printing */}
+        <div className="hidden print:block text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">FriendlyMart Supermarket</h1>
+          <h2 className="text-xl font-semibold text-gray-800 mt-2">Sales Report</h2>
+          {fromDate && toDate && (
+            <p className="text-gray-600 mt-1">
+              Period: {format(fromDate, "MMM dd, yyyy")} - {format(toDate, "MMM dd, yyyy")}
+            </p>
+          )}
+          <p className="text-gray-600">Generated on: {format(new Date(), "MMM dd, yyyy 'at' HH:mm")}</p>
+        </div>
+
         {/* Sales Summary */}
         {filteredData.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Report Summary</CardTitle>
-              <CardDescription>
+          <Card className="print:shadow-none print:border-0">
+            <CardHeader className="print:pb-2">
+              <CardTitle className="print:text-lg">Report Summary</CardTitle>
+              <CardDescription className="print:hidden">
                 Summary for the selected period
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{filteredData.length}</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:gap-2">
+                <div className="text-center p-4 bg-blue-50 rounded-lg print:bg-gray-50 print:p-2">
+                  <div className="text-2xl font-bold text-blue-600 print:text-lg print:text-gray-800">{filteredData.length}</div>
                   <div className="text-sm text-gray-600">Total Transactions</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">KSh {totalAmount.toLocaleString()}</div>
+                <div className="text-center p-4 bg-green-50 rounded-lg print:bg-gray-50 print:p-2">
+                  <div className="text-2xl font-bold text-green-600 print:text-lg print:text-gray-800">KSh {totalAmount.toLocaleString()}</div>
                   <div className="text-sm text-gray-600">Total Sales</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">KSh {Math.round(totalAmount / filteredData.length).toLocaleString()}</div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg print:bg-gray-50 print:p-2">
+                  <div className="text-2xl font-bold text-purple-600 print:text-lg print:text-gray-800">KSh {Math.round(totalAmount / filteredData.length).toLocaleString()}</div>
                   <div className="text-sm text-gray-600">Average Sale</div>
                 </div>
               </div>
@@ -155,28 +218,28 @@ const Reports = () => {
 
         {/* Sales Report Table */}
         {filteredData.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Sales Report</CardTitle>
-              <CardDescription>
+          <Card className="print:shadow-none print:border-0">
+            <CardHeader className="print:pb-2">
+              <CardTitle className="print:text-lg">Sales Transactions</CardTitle>
+              <CardDescription className="print:hidden">
                 Detailed sales transactions for the selected period
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Amount (KSh)</TableHead>
+                  <TableRow className="print:border-black">
+                    <TableHead className="print:font-bold print:text-black">Date</TableHead>
+                    <TableHead className="print:font-bold print:text-black">Customer</TableHead>
+                    <TableHead className="print:font-bold print:text-black">Amount (KSh)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredData.map((sale) => (
-                    <TableRow key={sale.id}>
-                      <TableCell>{format(new Date(sale.date), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>{sale.customer}</TableCell>
-                      <TableCell>KSh {sale.amount.toLocaleString()}</TableCell>
+                    <TableRow key={sale.id} className="print:border-black">
+                      <TableCell className="print:text-black">{format(new Date(sale.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="print:text-black">{sale.customer}</TableCell>
+                      <TableCell className="print:text-black">KSh {sale.amount.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -184,6 +247,13 @@ const Reports = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Print Footer */}
+        <div className="hidden print:block text-center mt-8 pt-4 border-t border-gray-300">
+          <p className="text-sm text-gray-600">
+            This report was generated by FriendlyMart Supermarket Management System
+          </p>
+        </div>
       </div>
     </Layout>
   );
