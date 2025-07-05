@@ -222,6 +222,11 @@ class LocalDatabase {
   }
 
   // Sales management with automatic stock deduction
+  getSales(): Sale[] {
+    const sales = localStorage.getItem('sales');
+    return sales ? JSON.parse(sales) : [];
+  }
+
   createSale(sale: Omit<Sale, 'id'>): Sale {
     const sales = this.getSales();
     const newSale: Sale = {

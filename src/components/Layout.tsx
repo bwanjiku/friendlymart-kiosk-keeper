@@ -1,16 +1,15 @@
+
 import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sidebar } from "@/components/ui/sidebar";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: "home" },
-  { name: "Inventory", href: "/Inventory", icon: "box" },
-  { name: "Purchases", href: "/Purchases", icon: "package" },
-  { name: "Sales", href: "/Sales", icon: "shopping-cart" },
-  { name: "Reports", href: "/Reports", icon: "bar-chart" },
+  { name: "Inventory", href: "/inventory", icon: "box" },
+  { name: "Purchases", href: "/purchases", icon: "package" },
+  { name: "Sales", href: "/sales", icon: "shopping-cart" },
+  { name: "Reports", href: "/reports", icon: "bar-chart" },
 ];
 
 interface LayoutProps {
@@ -18,20 +17,21 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-sm">
         <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-          <Link href="/" className="text-lg font-bold">
+          <Link to="/" className="text-lg font-bold">
             FriendlyMart
           </Link>
           <nav className="hidden md:flex space-x-4">
             {navigation.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className={cn(
                   "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md",
                   pathname === item.href
@@ -53,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {navigation.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className={cn(
                   "flex items-center rounded-md px-3 py-2 text-sm font-medium",
                   pathname === item.href
