@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -122,7 +121,6 @@ const Reports = () => {
                         mode="single"
                         selected={fromDate}
                         onSelect={setFromDate}
-                        disabled={(date) => date < new Date('2025-05-01') || date > new Date()}
                         initialFocus
                         className="pointer-events-auto"
                       />
@@ -151,7 +149,6 @@ const Reports = () => {
                         mode="single"
                         selected={toDate}
                         onSelect={setToDate}
-                        disabled={(date) => date < new Date('2025-05-01') || date > new Date()}
                         initialFocus
                         className="pointer-events-auto"
                       />
