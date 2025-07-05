@@ -1,4 +1,3 @@
-
 // Local database simulation using localStorage
 export interface User {
   id: string;
@@ -97,82 +96,84 @@ class LocalDatabase {
       localStorage.setItem('products', JSON.stringify(sampleProducts));
     }
 
-    // Initialize sample customers with recent dates
-    const customers = this.getCustomers();
-    if (customers.length === 0) {
-      const sampleCustomers = [
-        { id: '1', name: 'John Doe', email: 'john@email.com', phone: '123-456-7890', purchases: 15, totalSpent: 299.99, lastVisit: '2025-06-15' },
-        { id: '2', name: 'Jane Smith', email: 'jane@email.com', phone: '987-654-3210', purchases: 8, totalSpent: 150.50, lastVisit: '2025-06-20' },
-        { id: '3', name: 'Bob Johnson', email: 'bob@email.com', phone: '555-123-4567', purchases: 22, totalSpent: 450.75, lastVisit: '2025-06-25' }
-      ];
-      localStorage.setItem('customers', JSON.stringify(sampleCustomers));
-    }
+    // Force initialize sample data every time to ensure it's always available
+    this.forceSampleDataInitialization();
+  }
 
-    // Initialize sample sales with recent dates
-    const sales = this.getSales();
-    if (sales.length === 0) {
-      const sampleSales = [
-        {
-          id: '1',
-          items: [
-            { product: 'Milk 1L', quantity: 2, price: 120 },
-            { product: 'Bread Loaf', quantity: 1, price: 80 }
-          ],
-          total: 320,
-          customer: 'John Doe',
-          date: '2025-06-15'
-        },
-        {
-          id: '2',
-          items: [
-            { product: 'Rice 2kg', quantity: 1, price: 250 },
-            { product: 'Sugar 1kg', quantity: 2, price: 150 }
-          ],
-          total: 550,
-          customer: 'Jane Smith',
-          date: '2025-06-20'
-        },
-        {
-          id: '3',
-          items: [
-            { product: 'Eggs (12pcs)', quantity: 3, price: 200 }
-          ],
-          total: 600,
-          customer: 'Bob Johnson',
-          date: '2025-06-25'
-        }
-      ];
-      localStorage.setItem('sales', JSON.stringify(sampleSales));
-    }
+  private forceSampleDataInitialization() {
+    // Always ensure we have sample data for testing
+    const currentDate = new Date();
+    const today = currentDate.toISOString().split('T')[0];
+    const yesterday = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const weekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Initialize sample purchases with recent dates
-    const purchases = this.getPurchases();
-    if (purchases.length === 0) {
-      const samplePurchases = [
-        {
-          id: '1',
-          items: [
-            { productId: '1', productName: 'Milk 1L', quantity: 50, unitCost: 90, totalCost: 4500 },
-            { productId: '2', productName: 'Bread Loaf', quantity: 30, unitCost: 60, totalCost: 1800 }
-          ],
-          supplier: 'Fresh Farms',
-          total: 6300,
-          date: '2025-06-15',
-          invoiceNumber: 'INV-001'
-        },
-        {
-          id: '2',
-          items: [
-            { productId: '3', productName: 'Rice 2kg', quantity: 25, unitCost: 200, totalCost: 5000 }
-          ],
-          supplier: 'Rice Millers Co',
-          total: 5000,
-          date: '2025-06-20',
-          invoiceNumber: 'INV-002'
-        }
-      ];
-      localStorage.setItem('purchases', JSON.stringify(samplePurchases));
-    }
+    // Sample customers with dates spread over the last week
+    const sampleCustomers = [
+      { id: '1', name: 'John Doe', email: 'john@email.com', phone: '123-456-7890', purchases: 15, totalSpent: 299.99, lastVisit: today },
+      { id: '2', name: 'Jane Smith', email: 'jane@email.com', phone: '987-654-3210', purchases: 8, totalSpent: 150.50, lastVisit: yesterday },
+      { id: '3', name: 'Bob Johnson', email: 'bob@email.com', phone: '555-123-4567', purchases: 22, totalSpent: 450.75, lastVisit: weekAgo }
+    ];
+    localStorage.setItem('customers', JSON.stringify(sampleCustomers));
+
+    // Sample sales with recent dates
+    const sampleSales = [
+      {
+        id: '1',
+        items: [
+          { product: 'Milk 1L', quantity: 2, price: 120 },
+          { product: 'Bread Loaf', quantity: 1, price: 80 }
+        ],
+        total: 320,
+        customer: 'John Doe',
+        date: today
+      },
+      {
+        id: '2',
+        items: [
+          { product: 'Rice 2kg', quantity: 1, price: 250 },
+          { product: 'Sugar 1kg', quantity: 2, price: 150 }
+        ],
+        total: 550,
+        customer: 'Jane Smith',
+        date: yesterday
+      },
+      {
+        id: '3',
+        items: [
+          { product: 'Eggs (12pcs)', quantity: 3, price: 200 }
+        ],
+        total: 600,
+        customer: 'Bob Johnson',
+        date: weekAgo
+      }
+    ];
+    localStorage.setItem('sales', JSON.stringify(sampleSales));
+
+    // Sample purchases with recent dates
+    const samplePurchases = [
+      {
+        id: '1',
+        items: [
+          { productId: '1', productName: 'Milk 1L', quantity: 50, unitCost: 90, totalCost: 4500 },
+          { productId: '2', productName: 'Bread Loaf', quantity: 30, unitCost: 60, totalCost: 1800 }
+        ],
+        supplier: 'Fresh Farms',
+        total: 6300,
+        date: today,
+        invoiceNumber: 'INV-001'
+      },
+      {
+        id: '2',
+        items: [
+          { productId: '3', productName: 'Rice 2kg', quantity: 25, unitCost: 200, totalCost: 5000 }
+        ],
+        supplier: 'Rice Millers Co',
+        total: 5000,
+        date: yesterday,
+        invoiceNumber: 'INV-002'
+      }
+    ];
+    localStorage.setItem('purchases', JSON.stringify(samplePurchases));
   }
 
   // User management
@@ -311,26 +312,50 @@ class LocalDatabase {
   // Report filtering methods
   getSalesByDateRange(fromDate: Date, toDate: Date): Sale[] {
     const sales = this.getSales();
-    return sales.filter(sale => {
+    console.log('All sales:', sales);
+    console.log('Date range:', fromDate, 'to', toDate);
+    
+    const filtered = sales.filter(sale => {
       const saleDate = new Date(sale.date);
-      return saleDate >= fromDate && saleDate <= toDate;
+      const inRange = saleDate >= fromDate && saleDate <= toDate;
+      console.log(`Sale ${sale.id} date: ${sale.date}, in range: ${inRange}`);
+      return inRange;
     });
+    
+    console.log('Filtered sales:', filtered);
+    return filtered;
   }
 
   getPurchasesByDateRange(fromDate: Date, toDate: Date): Purchase[] {
     const purchases = this.getPurchases();
-    return purchases.filter(purchase => {
+    console.log('All purchases:', purchases);
+    console.log('Date range:', fromDate, 'to', toDate);
+    
+    const filtered = purchases.filter(purchase => {
       const purchaseDate = new Date(purchase.date);
-      return purchaseDate >= fromDate && purchaseDate <= toDate;
+      const inRange = purchaseDate >= fromDate && purchaseDate <= toDate;
+      console.log(`Purchase ${purchase.id} date: ${purchase.date}, in range: ${inRange}`);
+      return inRange;
     });
+    
+    console.log('Filtered purchases:', filtered);
+    return filtered;
   }
 
   getCustomersByDateRange(fromDate: Date, toDate: Date): Customer[] {
     const customers = this.getCustomers();
-    return customers.filter(customer => {
+    console.log('All customers:', customers);
+    console.log('Date range:', fromDate, 'to', toDate);
+    
+    const filtered = customers.filter(customer => {
       const lastVisitDate = new Date(customer.lastVisit);
-      return lastVisitDate >= fromDate && lastVisitDate <= toDate;
+      const inRange = lastVisitDate >= fromDate && lastVisitDate <= toDate;
+      console.log(`Customer ${customer.id} last visit: ${customer.lastVisit}, in range: ${inRange}`);
+      return inRange;
     });
+    
+    console.log('Filtered customers:', filtered);
+    return filtered;
   }
 
   // Password reset functionality
