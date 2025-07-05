@@ -1,4 +1,3 @@
-
 // Local database simulation using localStorage
 export interface User {
   id: string;
@@ -40,6 +39,21 @@ export interface Sale {
   date: string;
 }
 
+export interface Purchase {
+  id: string;
+  items: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+    unitCost: number;
+    totalCost: number;
+  }>;
+  supplier: string;
+  total: number;
+  date: string;
+  invoiceNumber: string;
+}
+
 class LocalDatabase {
   private static instance: LocalDatabase;
 
@@ -70,11 +84,14 @@ class LocalDatabase {
     const products = this.getProducts();
     if (products.length === 0) {
       const sampleProducts = [
-        { id: '1', name: 'Milk', price: 3.50, stock: 50, category: 'Dairy', supplier: 'Fresh Farms' },
-        { id: '2', name: 'Bread', price: 2.99, stock: 30, category: 'Bakery', supplier: 'Local Bakery' },
-        { id: '3', name: 'Eggs', price: 4.99, stock: 40, category: 'Dairy', supplier: 'Farm Fresh' },
-        { id: '4', name: 'Apples', price: 1.99, stock: 60, category: 'Fruits', supplier: 'Orchard Co' },
-        { id: '5', name: 'Rice', price: 5.99, stock: 25, category: 'Grains', supplier: 'Rice Mills' }
+        { id: '1', name: 'Milk 1L', price: 120, stock: 45, category: 'Dairy', supplier: 'Fresh Farms' },
+        { id: '2', name: 'Bread Loaf', price: 80, stock: 22, category: 'Bakery', supplier: 'Local Bakery' },
+        { id: '3', name: 'Rice 2kg', price: 250, stock: 32, category: 'Grains', supplier: 'Rice Millers Co' },
+        { id: '4', name: 'Cooking Oil 1L', price: 180, stock: 15, category: 'Oils', supplier: 'Oil Producers' },
+        { id: '5', name: 'Sugar 1kg', price: 150, stock: 40, category: 'Sweeteners', supplier: 'Sugar Works' },
+        { id: '6', name: 'Eggs (12pcs)', price: 200, stock: 28, category: 'Dairy', supplier: 'Farm Fresh' },
+        { id: '7', name: 'Tomatoes 1kg', price: 100, stock: 35, category: 'Vegetables', supplier: 'Garden Fresh' },
+        { id: '8', name: 'Onions 1kg', price: 80, stock: 42, category: 'Vegetables', supplier: 'Garden Fresh' },
       ];
       localStorage.setItem('products', JSON.stringify(sampleProducts));
     }
@@ -88,6 +105,35 @@ class LocalDatabase {
         { id: '3', name: 'Bob Johnson', email: 'bob@email.com', phone: '555-123-4567', purchases: 22, totalSpent: 450.75, lastVisit: '2024-01-20' }
       ];
       localStorage.setItem('customers', JSON.stringify(sampleCustomers));
+    }
+
+    // Initialize sample purchases
+    const purchases = this.getPurchases();
+    if (purchases.length === 0) {
+      const samplePurchases = [
+        {
+          id: '1',
+          items: [
+            { productId: '1', productName: 'Milk 1L', quantity: 50, unitCost: 90, totalCost: 4500 },
+            { productId: '2', productName: 'Bread Loaf', quantity: 30, unitCost: 60, totalCost: 1800 }
+          ],
+          supplier: 'Fresh Farms',
+          total: 6300,
+          date: '2025-06-15',
+          invoiceNumber: 'INV-001'
+        },
+        {
+          id: '2',
+          items: [
+            { productId: '3', productName: 'Rice 2kg', quantity: 25, unitCost: 200, totalCost: 5000 }
+          ],
+          supplier: 'Rice Millers Co',
+          total: 5000,
+          date: '2025-06-20',
+          invoiceNumber: 'INV-002'
+        }
+      ];
+      localStorage.setItem('purchases', JSON.stringify(samplePurchases));
     }
   }
 
@@ -129,6 +175,18 @@ class LocalDatabase {
     return null;
   }
 
+  // Product management with stock updates
+  updateProductStock(productId: string, quantityChange: number): Product | null {
+    const products = this.getProducts();
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      products[productIndex].stock += quantityChange;
+      localStorage.setItem('products', JSON.stringify(products));
+      return products[productIndex];
+    }
+    return null;
+  }
+
   // Product management
   getProducts(): Product[] {
     const products = localStorage.getItem('products');
@@ -163,21 +221,73 @@ class LocalDatabase {
     return newCustomer;
   }
 
-  // Sales management
-  getSales(): Sale[] {
-    const sales = localStorage.getItem('sales');
-    return sales ? JSON.parse(sales) : [];
-  }
-
+  // Sales management with automatic stock deduction
   createSale(sale: Omit<Sale, 'id'>): Sale {
     const sales = this.getSales();
     const newSale: Sale = {
       id: Date.now().toString(),
       ...sale
     };
+    
+    // Automatically deduct stock for each item
+    sale.items.forEach(item => {
+      const product = this.getProducts().find(p => p.name === item.product);
+      if (product) {
+        this.updateProductStock(product.id, -item.quantity);
+      }
+    });
+    
     sales.push(newSale);
     localStorage.setItem('sales', JSON.stringify(sales));
     return newSale;
+  }
+
+  // Purchase management
+  getPurchases(): Purchase[] {
+    const purchases = localStorage.getItem('purchases');
+    return purchases ? JSON.parse(purchases) : [];
+  }
+
+  createPurchase(purchase: Omit<Purchase, 'id'>): Purchase {
+    const purchases = this.getPurchases();
+    const newPurchase: Purchase = {
+      id: Date.now().toString(),
+      ...purchase
+    };
+    
+    // Automatically add stock for each purchased item
+    purchase.items.forEach(item => {
+      this.updateProductStock(item.productId, item.quantity);
+    });
+    
+    purchases.push(newPurchase);
+    localStorage.setItem('purchases', JSON.stringify(purchases));
+    return newPurchase;
+  }
+
+  // Report filtering methods
+  getSalesByDateRange(fromDate: Date, toDate: Date): Sale[] {
+    const sales = this.getSales();
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.date);
+      return saleDate >= fromDate && saleDate <= toDate;
+    });
+  }
+
+  getPurchasesByDateRange(fromDate: Date, toDate: Date): Purchase[] {
+    const purchases = this.getPurchases();
+    return purchases.filter(purchase => {
+      const purchaseDate = new Date(purchase.date);
+      return purchaseDate >= fromDate && purchaseDate <= toDate;
+    });
+  }
+
+  getCustomersByDateRange(fromDate: Date, toDate: Date): Customer[] {
+    const customers = this.getCustomers();
+    return customers.filter(customer => {
+      const lastVisitDate = new Date(customer.lastVisit);
+      return lastVisitDate >= fromDate && lastVisitDate <= toDate;
+    });
   }
 
   // Password reset functionality

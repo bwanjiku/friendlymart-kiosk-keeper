@@ -6,61 +6,50 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Receipt, Printer } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { db, Product } from '@/utils/database';
 
 interface SaleItem {
-  productName: string;
+  product: string;
   quantity: number;
   price: number;
-  total: number;
 }
 
 interface Sale {
   id: string;
-  date: string;
-  time: string;
-  customerName: string;
   items: SaleItem[];
-  subtotal: number;
-  tax: number;
   total: number;
+  customer: string;
+  date: string;
 }
 
 const Sales = () => {
-  const [sales, setSales] = useState<Sale[]>([
-    {
-      id: '1',
-      date: '2024-01-15',
-      time: '10:30',
-      customerName: 'John Doe',
-      items: [
-        { productName: 'Milk 1L', quantity: 2, price: 120, total: 240 },
-        { productName: 'Bread Loaf', quantity: 1, price: 80, total: 80 }
-      ],
-      subtotal: 320,
-      tax: 32,
-      total: 352
-    }
-  ]);
-
+  const [sales, setSales] = useState<Sale[]>(db.getSales());
+  const [products] = useState<Product[]>(db.getProducts());
   const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
   const [currentSale, setCurrentSale] = useState<{
     customerName: string;
-    items: SaleItem[];
+    items: Array<{
+      productName: string;
+      quantity: number;
+      price: number;
+      total: number;
+    }>;
   }>({
     customerName: '',
     items: []
   });
 
   const [newItem, setNewItem] = useState({
-    productName: '',
+    productId: '',
     quantity: 1,
     price: 0
   });
 
   const addItemToSale = () => {
-    if (!newItem.productName || newItem.quantity <= 0 || newItem.price <= 0) {
+    if (!newItem.productId || newItem.quantity <= 0 || newItem.price <= 0) {
       toast({
         title: "Error",
         description: "Please fill in all item details",
@@ -69,8 +58,22 @@ const Sales = () => {
       return;
     }
 
-    const item: SaleItem = {
-      ...newItem,
+    const selectedProduct = products.find(p => p.id === newItem.productId);
+    if (!selectedProduct) return;
+
+    if (selectedProduct.stock < newItem.quantity) {
+      toast({
+        title: "Error",
+        description: `Not enough stock. Available: ${selectedProduct.stock}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const item = {
+      productName: selectedProduct.name,
+      quantity: newItem.quantity,
+      price: newItem.price,
       total: newItem.quantity * newItem.price
     };
 
@@ -79,7 +82,7 @@ const Sales = () => {
       items: [...currentSale.items, item]
     });
 
-    setNewItem({ productName: '', quantity: 1, price: 0 });
+    setNewItem({ productId: '', quantity: 1, price: 0 });
   };
 
   const completeSale = () => {
@@ -92,20 +95,20 @@ const Sales = () => {
       return;
     }
 
-    const subtotal = currentSale.items.reduce((sum, item) => sum + item.total, 0);
-    const tax = subtotal * 0.1; // 10% tax
-    const total = subtotal + tax;
+    const total = currentSale.items.reduce((sum, item) => sum + item.total, 0);
 
-    const sale: Sale = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      customerName: currentSale.customerName,
-      items: currentSale.items,
-      subtotal,
-      tax,
-      total
-    };
+    const saleItems: SaleItem[] = currentSale.items.map(item => ({
+      product: item.productName,
+      quantity: item.quantity,
+      price: item.price
+    }));
+
+    const sale = db.createSale({
+      items: saleItems,
+      total,
+      customer: currentSale.customerName,
+      date: new Date().toISOString().split('T')[0]
+    });
 
     setSales([sale, ...sales]);
     setCurrentSale({ customerName: '', items: [] });
@@ -113,7 +116,7 @@ const Sales = () => {
 
     toast({
       title: "Sale Completed",
-      description: `Sale recorded for KSh ${total.toLocaleString()}`,
+      description: `Sale recorded for KSh ${total.toLocaleString()} and stock updated`,
     });
   };
 
@@ -205,8 +208,8 @@ const Sales = () => {
         
         <div class="receipt-info">
           <div>Receipt #: ${sale.id}</div>
-          <div>Date: ${sale.date} ${sale.time}</div>
-          <div>Customer: ${sale.customerName}</div>
+          <div>Date: ${sale.date}</div>
+          <div>Customer: ${sale.customer}</div>
           <div>Cashier: Admin</div>
         </div>
         
@@ -214,35 +217,24 @@ const Sales = () => {
           ${sale.items.map(item => `
             <div class="item">
               <div class="item-details">
-                <div>${item.productName}</div>
-                <div>KSh ${item.total.toLocaleString()}</div>
+                <div>${item.product}</div>
+                <div>KSh ${item.price.toLocaleString()}</div>
               </div>
-            </div>
-            <div class="item" style="font-size: 10px; color: #666; margin-bottom: 8px;">
-              <div>${item.quantity} x KSh ${item.price.toLocaleString()}</div>
+              <div>${item.quantity}</div>
             </div>
           `).join('')}
         </div>
         
         <div class="totals">
-          <div class="total-line">
-            <span>Subtotal:</span>
-            <span>KSh ${sale.subtotal.toLocaleString()}</span>
-          </div>
-          <div class="total-line">
-            <span>Tax (10%):</span>
-            <span>KSh ${sale.tax.toLocaleString()}</span>
-          </div>
-          <div class="total-line grand-total">
-            <span>TOTAL:</span>
-            <span>KSh ${sale.total.toLocaleString()}</span>
-          </div>
+          <div>Subtotal: KSh ${sale.total.toLocaleString()}</div>
+          <div>Tax (10%): KSh ${(sale.total * 0.1).toLocaleString()}</div>
+          <div class="grand-total">TOTAL: KSh ${(sale.total * 1.1).toLocaleString()}</div>
         </div>
         
         <div class="footer">
           <div>Thank you for shopping with us!</div>
           <div>Have a great day!</div>
-          <div style="margin-top: 10px;">*** CUSTOMER COPY ***</div>
+          <div>*** CUSTOMER COPY ***</div>
         </div>
       </body>
       </html>
@@ -253,16 +245,7 @@ const Sales = () => {
       printWindow.document.write(receiptHtml);
       printWindow.document.close();
       printWindow.focus();
-      
-      // Auto print after a short delay
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
-      
-      toast({
-        title: "Receipt Ready",
-        description: "Receipt is ready for printing",
-      });
+      printWindow.print();
     }
   };
 
@@ -276,21 +259,21 @@ const Sales = () => {
 ==========================================
 
 Receipt #: ${sale.id}
-Date: ${sale.date} ${sale.time}
-Customer: ${sale.customerName}
+Date: ${sale.date}
+Customer: ${sale.customer}
 Cashier: Admin
 
 ------------------------------------------
 ITEMS PURCHASED:
 ------------------------------------------
 ${sale.items.map(item => 
-  `${item.productName}\n${item.quantity} x KSh ${item.price.toLocaleString()} = KSh ${item.total.toLocaleString()}\n`
+  `${item.product} - ${item.quantity} x KSh ${item.price.toLocaleString()} = KSh ${(item.quantity * item.price).toLocaleString()}\n`
 ).join('\n')}
 ------------------------------------------
-Subtotal:        KSh ${sale.subtotal.toLocaleString()}
-Tax (10%):       KSh ${sale.tax.toLocaleString()}
+Subtotal:        KSh ${sale.total.toLocaleString()}
+Tax (10%):       KSh ${(sale.total * 0.1).toLocaleString()}
 ==========================================
-TOTAL:           KSh ${sale.total.toLocaleString()}
+TOTAL:           KSh ${(sale.total * 1.1).toLocaleString()}
 ==========================================
 
 Thank you for shopping with us!
@@ -316,176 +299,189 @@ Have a great day!
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sales Management</h1>
-            <p className="text-gray-600">Process sales and generate receipts</p>
-          </div>
-          <Dialog open={isNewSaleOpen} onOpenChange={setIsNewSaleOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Sale
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>New Sale</DialogTitle>
-                <DialogDescription>
-                  Create a new sale transaction
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="customerName">Customer Name</Label>
-                  <Input
-                    id="customerName"
-                    value={currentSale.customerName}
-                    onChange={(e) => setCurrentSale({ ...currentSale, customerName: e.target.value })}
-                    placeholder="Enter customer name"
-                  />
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="font-medium mb-3">Add Items</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="productName">Product Name</Label>
-                      <Input
-                        id="productName"
-                        value={newItem.productName}
-                        onChange={(e) => setNewItem({ ...newItem, productName: e.target.value })}
-                        placeholder="Enter product name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
-                        min="1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="price">Price (KSh)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={newItem.price}
-                        onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                        placeholder="Enter price"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button onClick={addItemToSale} className="w-full">
-                        Add Item
-                      </Button>
-                    </div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-blue-50">
+        <div className="space-y-6 p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Sales Management</h1>
+              <p className="text-gray-600">Process sales and generate receipts</p>
+            </div>
+            <Dialog open={isNewSaleOpen} onOpenChange={setIsNewSaleOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Sale
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>New Sale</DialogTitle>
+                  <DialogDescription>
+                    Create a new sale transaction
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="customerName">Customer Name</Label>
+                    <Input
+                      id="customerName"
+                      value={currentSale.customerName}
+                      onChange={(e) => setCurrentSale({ ...currentSale, customerName: e.target.value })}
+                      placeholder="Enter customer name"
+                    />
                   </div>
-                </div>
 
-                {currentSale.items.length > 0 && (
                   <div className="border-t pt-4">
-                    <h3 className="font-medium mb-3">Items in Sale</h3>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Qty</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Total</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {currentSale.items.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{item.productName}</TableCell>
-                            <TableCell>{item.quantity}</TableCell>
-                            <TableCell>KSh {item.price}</TableCell>
-                            <TableCell>KSh {item.total}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                    <div className="mt-4 text-right">
-                      <p className="text-lg font-bold">
-                        Total: KSh {(currentSale.items.reduce((sum, item) => sum + item.total, 0) * 1.1).toLocaleString()}
-                        <span className="text-sm text-gray-500 ml-2">(including 10% tax)</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsNewSaleOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={completeSale} className="flex-1">
-                    Complete Sale
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Sales History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales History</CardTitle>
-            <CardDescription>
-              View and manage all sales transactions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Sale ID</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">{sale.id}</TableCell>
-                    <TableCell>{sale.date} {sale.time}</TableCell>
-                    <TableCell>{sale.customerName}</TableCell>
-                    <TableCell>{sale.items.length} items</TableCell>
-                    <TableCell>KSh {sale.total.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => printReceipt(sale)}
-                        >
-                          <Printer className="h-4 w-4 mr-2" />
-                          Print
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => generateReceipt(sale)}
-                        >
-                          <Receipt className="h-4 w-4 mr-2" />
-                          Download
+                    <h3 className="font-medium mb-3">Add Items</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="product">Product</Label>
+                        <Select value={newItem.productId} onValueChange={(value) => {
+                          setNewItem({ ...newItem, productId: value });
+                          const selectedProduct = products.find(p => p.id === value);
+                          if (selectedProduct) {
+                            setNewItem(prev => ({ ...prev, productId: value, price: selectedProduct.price }));
+                          }
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select product" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {products.map((product) => (
+                              <SelectItem key={product.id} value={product.id}>
+                                {product.name} (Stock: {product.stock})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="quantity">Quantity</Label>
+                        <Input
+                          id="quantity"
+                          type="number"
+                          value={newItem.quantity}
+                          onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
+                          min="1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="price">Price (KSh)</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          value={newItem.price}
+                          onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                          placeholder="Enter price"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button onClick={addItemToSale} className="w-full">
+                          Add Item
                         </Button>
                       </div>
-                    </TableCell>
+                    </div>
+                  </div>
+
+                  {currentSale.items.length > 0 && (
+                    <div className="border-t pt-4">
+                      <h3 className="font-medium mb-3">Items in Sale</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Product</TableHead>
+                            <TableHead>Qty</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead>Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentSale.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item.productName}</TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell>KSh {item.price}</TableCell>
+                              <TableCell>KSh {item.total}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <div className="mt-4 text-right">
+                        <p className="text-lg font-bold">
+                          Total: KSh {currentSale.items.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setIsNewSaleOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={completeSale} className="flex-1">
+                      Complete Sale
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Sales History */}
+          <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Sales History</CardTitle>
+              <CardDescription>
+                View and manage all sales transactions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sale ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {sales.map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell className="font-medium">{sale.id}</TableCell>
+                      <TableCell>{sale.date}</TableCell>
+                      <TableCell>{sale.customer}</TableCell>
+                      <TableCell>{sale.items.length} items</TableCell>
+                      <TableCell>KSh {sale.total.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => printReceipt(sale)}
+                          >
+                            <Printer className="h-4 w-4 mr-2" />
+                            Print
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => generateReceipt(sale)}
+                          >
+                            <Receipt className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );

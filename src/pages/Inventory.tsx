@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -82,147 +81,149 @@ const Inventory = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
-            <p className="text-gray-600">Manage your product inventory and stock levels</p>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
-                <DialogDescription>
-                  Enter the details for the new product
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input
-                    id="name"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={newProduct.category}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    placeholder="Enter category"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="price">Price (KSh)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                    placeholder="Enter price"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="stock">Current Stock</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    value={newProduct.stock}
-                    onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                    placeholder="Enter current stock"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="minStock">Minimum Stock Level</Label>
-                  <Input
-                    id="minStock"
-                    type="number"
-                    value={newProduct.minStock}
-                    onChange={(e) => setNewProduct({ ...newProduct, minStock: Number(e.target.value) })}
-                    placeholder="Enter minimum stock level"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="supplier">Supplier</Label>
-                  <Input
-                    id="supplier"
-                    value={newProduct.supplier}
-                    onChange={(e) => setNewProduct({ ...newProduct, supplier: e.target.value })}
-                    placeholder="Enter supplier name"
-                  />
-                </div>
-                <Button onClick={handleAddProduct} className="w-full">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50">
+        <div className="space-y-6 p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
+              <p className="text-gray-600">Manage your product inventory and stock levels</p>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                  <Plus className="h-4 w-4 mr-2" />
                   Add Product
                 </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogDescription>
+                    Enter the details for the new product
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Product Name</Label>
+                    <Input
+                      id="name"
+                      value={newProduct.name}
+                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      placeholder="Enter category"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="price">Price (KSh)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                      placeholder="Enter price"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="stock">Current Stock</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      value={newProduct.stock}
+                      onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                      placeholder="Enter current stock"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="minStock">Minimum Stock Level</Label>
+                    <Input
+                      id="minStock"
+                      type="number"
+                      value={newProduct.minStock}
+                      onChange={(e) => setNewProduct({ ...newProduct, minStock: Number(e.target.value) })}
+                      placeholder="Enter minimum stock level"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Input
+                      id="supplier"
+                      value={newProduct.supplier}
+                      onChange={(e) => setNewProduct({ ...newProduct, supplier: e.target.value })}
+                      placeholder="Enter supplier name"
+                    />
+                  </div>
+                  <Button onClick={handleAddProduct} className="w-full">
+                    Add Product
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Search */}
+          <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Search Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by product name or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+            </CardContent>
+          </Card>
 
-        {/* Search */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Search Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by product name or category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Products Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Products ({filteredProducts.length})</CardTitle>
-            <CardDescription>
-              Manage your product inventory and monitor stock levels
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price (KSh)</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Min Stock</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Supplier</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell>KSh {product.price.toLocaleString()}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>{product.minStock}</TableCell>
-                    <TableCell>{getStockStatus(product.stock, product.minStock)}</TableCell>
-                    <TableCell>{product.supplier}</TableCell>
+          {/* Products Table */}
+          <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Products ({filteredProducts.length})</CardTitle>
+              <CardDescription>
+                Manage your product inventory and monitor stock levels
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price (KSh)</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Min Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Supplier</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>KSh {product.price.toLocaleString()}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>{product.minStock}</TableCell>
+                      <TableCell>{getStockStatus(product.stock, product.minStock)}</TableCell>
+                      <TableCell>{product.supplier}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
