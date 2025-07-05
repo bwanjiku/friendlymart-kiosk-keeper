@@ -1,3 +1,4 @@
+
 // Local database simulation using localStorage
 export interface User {
   id: string;
@@ -96,18 +97,55 @@ class LocalDatabase {
       localStorage.setItem('products', JSON.stringify(sampleProducts));
     }
 
-    // Initialize sample customers
+    // Initialize sample customers with recent dates
     const customers = this.getCustomers();
     if (customers.length === 0) {
       const sampleCustomers = [
-        { id: '1', name: 'John Doe', email: 'john@email.com', phone: '123-456-7890', purchases: 15, totalSpent: 299.99, lastVisit: '2024-01-15' },
-        { id: '2', name: 'Jane Smith', email: 'jane@email.com', phone: '987-654-3210', purchases: 8, totalSpent: 150.50, lastVisit: '2024-01-10' },
-        { id: '3', name: 'Bob Johnson', email: 'bob@email.com', phone: '555-123-4567', purchases: 22, totalSpent: 450.75, lastVisit: '2024-01-20' }
+        { id: '1', name: 'John Doe', email: 'john@email.com', phone: '123-456-7890', purchases: 15, totalSpent: 299.99, lastVisit: '2025-06-15' },
+        { id: '2', name: 'Jane Smith', email: 'jane@email.com', phone: '987-654-3210', purchases: 8, totalSpent: 150.50, lastVisit: '2025-06-20' },
+        { id: '3', name: 'Bob Johnson', email: 'bob@email.com', phone: '555-123-4567', purchases: 22, totalSpent: 450.75, lastVisit: '2025-06-25' }
       ];
       localStorage.setItem('customers', JSON.stringify(sampleCustomers));
     }
 
-    // Initialize sample purchases
+    // Initialize sample sales with recent dates
+    const sales = this.getSales();
+    if (sales.length === 0) {
+      const sampleSales = [
+        {
+          id: '1',
+          items: [
+            { product: 'Milk 1L', quantity: 2, price: 120 },
+            { product: 'Bread Loaf', quantity: 1, price: 80 }
+          ],
+          total: 320,
+          customer: 'John Doe',
+          date: '2025-06-15'
+        },
+        {
+          id: '2',
+          items: [
+            { product: 'Rice 2kg', quantity: 1, price: 250 },
+            { product: 'Sugar 1kg', quantity: 2, price: 150 }
+          ],
+          total: 550,
+          customer: 'Jane Smith',
+          date: '2025-06-20'
+        },
+        {
+          id: '3',
+          items: [
+            { product: 'Eggs (12pcs)', quantity: 3, price: 200 }
+          ],
+          total: 600,
+          customer: 'Bob Johnson',
+          date: '2025-06-25'
+        }
+      ];
+      localStorage.setItem('sales', JSON.stringify(sampleSales));
+    }
+
+    // Initialize sample purchases with recent dates
     const purchases = this.getPurchases();
     if (purchases.length === 0) {
       const samplePurchases = [
