@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,26 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  minStock: number;
-  supplier: string;
-}
+import { db, Product } from '@/utils/database';
 
 const Inventory = () => {
-  const [products, setProducts] = useState<Product[]>([
-    { id: '1', name: 'Milk 1L', category: 'Dairy', price: 120, stock: 5, minStock: 10, supplier: 'Dairy Farm Ltd' },
-    { id: '2', name: 'Bread Loaf', category: 'Bakery', price: 80, stock: 8, minStock: 15, supplier: 'Fresh Bakery' },
-    { id: '3', name: 'Rice 2kg', category: 'Grains', price: 250, stock: 12, minStock: 20, supplier: 'Rice Millers Co' },
-    { id: '4', name: 'Cooking Oil 1L', category: 'Oils', price: 180, stock: 3, minStock: 8, supplier: 'Oil Producers' },
-    { id: '5', name: 'Sugar 1kg', category: 'Sweeteners', price: 150, stock: 25, minStock: 15, supplier: 'Sugar Works' },
-  ]);
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({
@@ -36,9 +21,24 @@ const Inventory = () => {
     category: '',
     price: 0,
     stock: 0,
-    minStock: 0,
     supplier: ''
   });
+
+  useEffect(() => {
+    // Load products from database
+    const loadProducts = () => {
+      const dbProducts = db.getProducts();
+      console.log('Loaded products from database:', dbProducts);
+      setProducts(dbProducts);
+    };
+
+    loadProducts();
+    
+    // Refresh products every 5 seconds to show real-time stock updates
+    const interval = setInterval(loadProducts, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,13 +55,16 @@ const Inventory = () => {
       return;
     }
 
-    const product: Product = {
-      id: Date.now().toString(),
-      ...newProduct
-    };
+    const product = db.createProduct({
+      name: newProduct.name,
+      category: newProduct.category,
+      price: newProduct.price,
+      stock: newProduct.stock,
+      supplier: newProduct.supplier
+    });
 
     setProducts([...products, product]);
-    setNewProduct({ name: '', category: '', price: 0, stock: 0, minStock: 0, supplier: '' });
+    setNewProduct({ name: '', category: '', price: 0, stock: 0, supplier: '' });
     setIsAddDialogOpen(false);
     
     toast({
@@ -70,10 +73,10 @@ const Inventory = () => {
     });
   };
 
-  const getStockStatus = (stock: number, minStock: number) => {
-    if (stock <= minStock) {
+  const getStockStatus = (stock: number) => {
+    if (stock <= 10) {
       return <Badge variant="destructive">Low Stock</Badge>;
-    } else if (stock <= minStock * 1.5) {
+    } else if (stock <= 20) {
       return <Badge variant="secondary">Running Low</Badge>;
     }
     return <Badge variant="default">In Stock</Badge>;
@@ -142,16 +145,6 @@ const Inventory = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="minStock">Minimum Stock Level</Label>
-                    <Input
-                      id="minStock"
-                      type="number"
-                      value={newProduct.minStock}
-                      onChange={(e) => setNewProduct({ ...newProduct, minStock: Number(e.target.value) })}
-                      placeholder="Enter minimum stock level"
-                    />
-                  </div>
-                  <div>
                     <Label htmlFor="supplier">Supplier</Label>
                     <Input
                       id="supplier"
@@ -191,7 +184,7 @@ const Inventory = () => {
             <CardHeader>
               <CardTitle>Products ({filteredProducts.length})</CardTitle>
               <CardDescription>
-                Manage your product inventory and monitor stock levels
+                Manage your product inventory and monitor stock levels. Stock updates automatically with sales and purchases.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -202,7 +195,6 @@ const Inventory = () => {
                     <TableHead>Category</TableHead>
                     <TableHead>Price (KSh)</TableHead>
                     <TableHead>Stock</TableHead>
-                    <TableHead>Min Stock</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Supplier</TableHead>
                   </TableRow>
@@ -214,8 +206,7 @@ const Inventory = () => {
                       <TableCell>{product.category}</TableCell>
                       <TableCell>KSh {product.price.toLocaleString()}</TableCell>
                       <TableCell>{product.stock}</TableCell>
-                      <TableCell>{product.minStock}</TableCell>
-                      <TableCell>{getStockStatus(product.stock, product.minStock)}</TableCell>
+                      <TableCell>{getStockStatus(product.stock)}</TableCell>
                       <TableCell>{product.supplier}</TableCell>
                     </TableRow>
                   ))}

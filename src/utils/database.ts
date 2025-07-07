@@ -1,3 +1,4 @@
+
 // Local database simulation using localStorage
 export interface User {
   id: string;
@@ -214,16 +215,23 @@ class LocalDatabase {
     return null;
   }
 
-  // Product management with stock updates
+  // Product management with automatic stock updates
   updateProductStock(productId: string, quantityChange: number): Product | null {
     const products = this.getProducts();
     const productIndex = products.findIndex(p => p.id === productId);
     if (productIndex !== -1) {
+      const oldStock = products[productIndex].stock;
       products[productIndex].stock += quantityChange;
+      console.log(`Stock updated for ${products[productIndex].name}: ${oldStock} -> ${products[productIndex].stock} (${quantityChange > 0 ? '+' : ''}${quantityChange})`);
       localStorage.setItem('products', JSON.stringify(products));
       return products[productIndex];
     }
     return null;
+  }
+
+  findProductByName(productName: string): Product | null {
+    const products = this.getProducts();
+    return products.find(p => p.name === productName) || null;
   }
 
   // Product management
@@ -273,20 +281,24 @@ class LocalDatabase {
       ...sale
     };
     
-    // Automatically deduct stock for each item
+    // Automatically deduct stock for each item in the sale
+    console.log('Processing sale - deducting stock:');
     sale.items.forEach(item => {
-      const product = this.getProducts().find(p => p.name === item.product);
+      const product = this.findProductByName(item.product);
       if (product) {
         this.updateProductStock(product.id, -item.quantity);
+      } else {
+        console.warn(`Product not found for sale item: ${item.product}`);
       }
     });
     
     sales.push(newSale);
     localStorage.setItem('sales', JSON.stringify(sales));
+    console.log(`Sale completed: ${newSale.id} - Stock automatically updated`);
     return newSale;
   }
 
-  // Purchase management
+  // Purchase management with automatic stock addition
   getPurchases(): Purchase[] {
     const purchases = localStorage.getItem('purchases');
     return purchases ? JSON.parse(purchases) : [];
@@ -300,12 +312,14 @@ class LocalDatabase {
     };
     
     // Automatically add stock for each purchased item
+    console.log('Processing purchase - adding stock:');
     purchase.items.forEach(item => {
       this.updateProductStock(item.productId, item.quantity);
     });
     
     purchases.push(newPurchase);
     localStorage.setItem('purchases', JSON.stringify(purchases));
+    console.log(`Purchase completed: ${newPurchase.id} - Stock automatically updated`);
     return newPurchase;
   }
 
