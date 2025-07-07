@@ -229,6 +229,18 @@ class LocalDatabase {
     return null;
   }
 
+  updateProduct(productId: string, updates: Partial<Omit<Product, 'id'>>): Product | null {
+    const products = this.getProducts();
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      products[productIndex] = { ...products[productIndex], ...updates };
+      localStorage.setItem('products', JSON.stringify(products));
+      console.log(`Product updated: ${products[productIndex].name}`);
+      return products[productIndex];
+    }
+    return null;
+  }
+
   findProductByName(productName: string): Product | null {
     const products = this.getProducts();
     return products.find(p => p.name === productName) || null;

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { db, Product } from '@/utils/database';
 
@@ -16,6 +16,8 @@ const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: '',
@@ -71,6 +73,52 @@ const Inventory = () => {
       title: "Success",
       description: "Product added successfully",
     });
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateProduct = () => {
+    if (!editingProduct) return;
+
+    if (!editingProduct.name || !editingProduct.category || editingProduct.price <= 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedProduct = db.updateProduct(editingProduct.id, {
+      name: editingProduct.name,
+      category: editingProduct.category,
+      price: editingProduct.price,
+      stock: editingProduct.stock,
+      supplier: editingProduct.supplier
+    });
+
+    if (updatedProduct) {
+      const updatedProducts = products.map(p => 
+        p.id === editingProduct.id ? updatedProduct : p
+      );
+      setProducts(updatedProducts);
+      setIsEditDialogOpen(false);
+      setEditingProduct(null);
+      
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStockStatus = (stock: number) => {
@@ -197,6 +245,7 @@ const Inventory = () => {
                     <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Supplier</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -208,12 +257,88 @@ const Inventory = () => {
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>{getStockStatus(product.stock)}</TableCell>
                       <TableCell>{product.supplier}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditProduct(product)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+
+          {/* Edit Product Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Product</DialogTitle>
+                <DialogDescription>
+                  Update the product details including stock level
+                </DialogDescription>
+              </DialogHeader>
+              {editingProduct && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-name">Product Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editingProduct.name}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-category">Category</Label>
+                    <Input
+                      id="edit-category"
+                      value={editingProduct.category}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      placeholder="Enter category"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-price">Price (KSh)</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      value={editingProduct.price}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                      placeholder="Enter price"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-stock">Current Stock</Label>
+                    <Input
+                      id="edit-stock"
+                      type="number"
+                      value={editingProduct.stock}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                      placeholder="Enter current stock"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-supplier">Supplier</Label>
+                    <Input
+                      id="edit-supplier"
+                      value={editingProduct.supplier}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, supplier: e.target.value })}
+                      placeholder="Enter supplier name"
+                    />
+                  </div>
+                  <Button onClick={handleUpdateProduct} className="w-full">
+                    Update Product
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </Layout>
