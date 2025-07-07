@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,137 +9,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  address: string;
-  totalPurchases: number;
-  lastPurchase: string;
-}
+import { db, Customer } from '@/utils/database';
 
 const Customers = () => {
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      phone: '+254 711 123 456',
-      email: 'john@example.com',
-      address: 'Nairobi, Kenya',
-      totalPurchases: 15420.50,
-      lastPurchase: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      phone: '+254 722 234 567',
-      email: 'jane@example.com',
-      address: 'Mombasa, Kenya',
-      totalPurchases: 8900.25,
-      lastPurchase: '2024-01-14'
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      phone: '+254 733 345 678',
-      email: 'mike@example.com',
-      address: 'Kisumu, Kenya',
-      totalPurchases: 23400.00,
-      lastPurchase: '2024-01-13'
-    },
-    {
-      id: '4',
-      name: 'Sarah Wilson',
-      phone: '+254 744 456 789',
-      email: 'sarah@example.com',
-      address: 'Nakuru, Kenya',
-      totalPurchases: 12750.75,
-      lastPurchase: '2024-01-12'
-    },
-    {
-      id: '5',
-      name: 'David Brown',
-      phone: '+254 755 567 890',
-      email: 'david@example.com',
-      address: 'Eldoret, Kenya',
-      totalPurchases: 18900.00,
-      lastPurchase: '2024-01-11'
-    },
-    {
-      id: '6',
-      name: 'Mary Johnson',
-      phone: '+254 766 678 901',
-      email: 'mary@example.com',
-      address: 'Thika, Kenya',
-      totalPurchases: 9850.25,
-      lastPurchase: '2024-01-10'
-    },
-    {
-      id: '7',
-      name: 'Peter Wilson',
-      phone: '+254 777 789 012',
-      email: 'peter@example.com',
-      address: 'Machakos, Kenya',
-      totalPurchases: 14200.50,
-      lastPurchase: '2024-01-09'
-    },
-    {
-      id: '8',
-      name: 'Lucy Adams',
-      phone: '+254 788 890 123',
-      email: 'lucy@example.com',
-      address: 'Nyeri, Kenya',
-      totalPurchases: 21500.75,
-      lastPurchase: '2024-01-08'
-    },
-    {
-      id: '9',
-      name: 'James Kiptoo',
-      phone: '+254 799 901 234',
-      email: 'james@example.com',
-      address: 'Kericho, Kenya',
-      totalPurchases: 16750.00,
-      lastPurchase: '2024-01-07'
-    },
-    {
-      id: '10',
-      name: 'Grace Wanjiku',
-      phone: '+254 700 012 345',
-      email: 'grace@example.com',
-      address: 'Kiambu, Kenya',
-      totalPurchases: 13450.25,
-      lastPurchase: '2024-01-06'
-    },
-    {
-      id: '11',
-      name: 'Robert Otieno',
-      phone: '+254 701 123 456',
-      email: 'robert@example.com',
-      address: 'Kisii, Kenya',
-      totalPurchases: 19800.50,
-      lastPurchase: '2024-01-05'
-    },
-    {
-      id: '12',
-      name: 'Elizabeth Muthoni',
-      phone: '+254 702 234 567',
-      email: 'elizabeth@example.com',
-      address: 'Meru, Kenya',
-      totalPurchases: 11250.75,
-      lastPurchase: '2024-01-04'
-    }
-  ]);
-
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     phone: '',
     email: '',
-    address: ''
+    purchases: 0,
+    totalSpent: 0,
+    lastVisit: new Date().toISOString().split('T')[0]
   });
+
+  useEffect(() => {
+    // Load customers from database
+    const loadCustomers = () => {
+      const dbCustomers = db.getCustomers();
+      console.log('Loaded customers from database:', dbCustomers);
+      setCustomers(dbCustomers);
+    };
+
+    loadCustomers();
+  }, []);
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,15 +51,24 @@ const Customers = () => {
       return;
     }
 
-    const customer: Customer = {
-      id: Date.now().toString(),
-      ...newCustomer,
-      totalPurchases: 0,
-      lastPurchase: new Date().toISOString().split('T')[0]
-    };
+    const customer = db.createCustomer({
+      name: newCustomer.name,
+      email: newCustomer.email,
+      phone: newCustomer.phone,
+      purchases: newCustomer.purchases,
+      totalSpent: newCustomer.totalSpent,
+      lastVisit: newCustomer.lastVisit
+    });
 
     setCustomers([...customers, customer]);
-    setNewCustomer({ name: '', phone: '', email: '', address: '' });
+    setNewCustomer({ 
+      name: '', 
+      phone: '', 
+      email: '', 
+      purchases: 0, 
+      totalSpent: 0, 
+      lastVisit: new Date().toISOString().split('T')[0] 
+    });
     setIsAddDialogOpen(false);
     
     toast({
@@ -224,15 +128,6 @@ const Customers = () => {
                     placeholder="Enter email address"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={newCustomer.address}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                    placeholder="Enter address"
-                  />
-                </div>
                 <Button onClick={handleAddCustomer} className="w-full">
                   Add Customer
                 </Button>
@@ -274,9 +169,9 @@ const Customers = () => {
                   <TableHead>Customer Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Total Purchases</TableHead>
-                  <TableHead>Last Purchase</TableHead>
+                  <TableHead>Purchases</TableHead>
+                  <TableHead>Total Spent</TableHead>
+                  <TableHead>Last Visit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -285,9 +180,9 @@ const Customers = () => {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{customer.phone}</TableCell>
                     <TableCell>{customer.email || 'N/A'}</TableCell>
-                    <TableCell>{customer.address}</TableCell>
-                    <TableCell>KSh {customer.totalPurchases.toLocaleString()}</TableCell>
-                    <TableCell>{customer.lastPurchase}</TableCell>
+                    <TableCell>{customer.purchases}</TableCell>
+                    <TableCell>KSh {customer.totalSpent.toLocaleString()}</TableCell>
+                    <TableCell>{customer.lastVisit}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
